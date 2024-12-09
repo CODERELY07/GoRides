@@ -147,4 +147,12 @@ container: {
     backgroundColor: "rgba(0,0,0,0.1)",
     borderRadius: 8,
     },
+    errorMessage:{
+        color:'#F95454',
+        fontSize:13,
+    },
+    textCenter:{
+        textAlign:'center',
+        marginTop:10,
+    }
 });

@@ -2,8 +2,9 @@ import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import LoginScreenComponent from "./screens/LoginScreenComponent";
+import SignUpScreenComponent from "./screens/SignUpScreenComponent";
 import HomeScreenComponent from "./screens/HomeScreenComponent";
+import LoginScreenComponent from "./screens/LoginScreenComponent";
 import UserProfileScreen from "./screens/UserProfileScreen";
 import RideHistoryScreen from "./screens/RideHistoryScreen";
 import TrackLocationScreen from "./screens/TrackLocationScreen";
@@ -14,7 +15,12 @@ const Stack = createNativeStackNavigator();
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login">
+      <Stack.Navigator initialRouteName="Signup">
+         <Stack.Screen
+          name="Signup"
+          component={SignUpScreenComponent}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen
           name="Login"
           component={LoginScreenComponent}
