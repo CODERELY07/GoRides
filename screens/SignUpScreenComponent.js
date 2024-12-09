@@ -10,35 +10,42 @@ import {
 import { styles } from "../styles/globalStyles";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import * as SQLite from 'expo-sqlite';
+import AsyncStorage from "@react-native-async-storage/async-storage"; 
 
 const initDB = async () => {
   const db = await SQLite.openDatabaseAsync('goRides');
   try {
     await db.execAsync(`
       PRAGMA journal_mode = WAL;
+
+
+      -- Create the 'users' table again with the necessary columns
       CREATE TABLE IF NOT EXISTS users(
         userID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
         email TEXT NOT NULL,
         username TEXT NOT NULL,
-        password TEXT NOT NULL)
+        password TEXT NOT NULL,
+        role TEXT NULL
+      );
     `);
+    
   } catch (e) {
     console.log("Error", e);
   }
 };
 initDB();
 
-const showUsers = async () => {
-  const db = await SQLite.openDatabaseAsync('goRides');
-  try {
-    const allRows = await db.getAllAsync('SELECT * FROM users');
-    for (const row of allRows) {
-      console.log(row.userID, row.username, row.email, row.password);
-    }
-  } catch (e) {
-    console.log('Error: ', e);
-  }
-};
+// const showUsers = async () => {
+//   const db = await SQLite.openDatabaseAsync('goRides');
+//   try {
+//     const allRows = await db.getAllAsync('SELECT * FROM users');
+//     for (const row of allRows) {
+//       console.log(row.userID, row.username, row.email, row.password);
+//     }
+//   } catch (e) {
+//     console.log('Error: ', e);
+//   }
+// };
 
 const validateEmail = (email) => {
   const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
@@ -54,7 +61,7 @@ export default function LoginScreenComponent({ navigation }) {
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
-  const [isCreated, setIsCreated] = useState(false); // Set the default state to false
+  const [isCreated, setIsCreated] = useState(false); 
 
   const createUsers = async () => {
     const db = await SQLite.openDatabaseAsync('goRides');
@@ -64,7 +71,15 @@ export default function LoginScreenComponent({ navigation }) {
         setEmailError('Error: Email already in use. Please use a different email.');
         setIsCreated(false);
       } else {
-        await db.runAsync('INSERT INTO users(email, username, password) VALUES(?, ?, ?)', [email, username, password]);
+        // Perform the INSERT query
+        const insertResult = await db.runAsync('INSERT INTO users(email, username, password) VALUES(?, ?, ?)', [email, username, password]);
+        
+        const user =  await db.getAllAsync("SELECT userID FROM users WHERE email = ?", [email]);
+        // The inserted user ID is available in insertResult.lastID
+
+        
+        await AsyncStorage.setItem("userID", user[0].userID.toString());
+         
         setIsCreated(true);
         setEmailError("");
       }
@@ -73,6 +88,7 @@ export default function LoginScreenComponent({ navigation }) {
       setIsCreated(false);
     }
   };
+  
 
   const handleSignUp = async () => {
     let valid = true;
@@ -131,7 +147,7 @@ export default function LoginScreenComponent({ navigation }) {
             {
               text: "OK",
               onPress: () => {
-                navigation.navigate('Login');
+                navigation.navigate('Picker');
               },
             }
           ]
