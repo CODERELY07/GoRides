@@ -6,7 +6,7 @@ import SignUpScreenComponent from "./screens/SignUpScreenComponent";
 import HomeScreenComponent from "./screens/HomeScreenComponent";
 import LoginScreenComponent from "./screens/LoginScreenComponent";
 import PickerScreen from "./screens/PickerScreen";
-import UserProfileScreen from "./screens/UserProfileScreen";
+import TabScreenRidersComponent from "./screens/TabScreenRidersComponent";
 import RideHistoryScreen from "./screens/RideHistoryScreen";
 import TrackLocationScreen from "./screens/TrackLocationScreen";
 import TabScreenComponent from "./screens/TabScreenComponent";  // Import the Tab navigator
@@ -46,6 +46,11 @@ export default function App() {
         <Stack.Screen
           name="Tab"
           component={TabScreenComponent}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="RiderTab"
+          component={TabScreenRidersComponent}
           options={{ headerShown: false }}
         />
 

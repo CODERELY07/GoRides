@@ -22,12 +22,13 @@ const login = async (email, password, navigation,setPasswordError) => {
       // Store user details in AsyncStorage
       await AsyncStorage.setItem("email", result.email);
       await AsyncStorage.setItem("username", result.username);
+      await AsyncStorage.setItem("userID", result.userID.toString());
 
       // Navigate to another screen on successful login
       if(result.role == "user"){
         navigation.navigate("Tab");
       }else{
-        navigation.navigate("Home");
+        navigation.navigate("RiderTab");
       }
      
     } else {
