@@ -23,7 +23,10 @@ const login = async (email, password, navigation,setPasswordError) => {
       await AsyncStorage.setItem("email", result.email);
       await AsyncStorage.setItem("username", result.username);
       await AsyncStorage.setItem("userID", result.userID.toString());
-
+      // navigation.reset({
+      //   index: 0, // Reset the navigation stack to the Home screen
+      //   routes: [{ name: 'Home' }],
+      // });
       // Navigate to another screen on successful login
       if(result.role == "user"){
         navigation.navigate("Tab");

@@ -66,51 +66,56 @@ export default function HomeScreenComponent({ navigation }) {
   };
 
   // Insert or update the ride request
-  const insertOrUpdateRideRequest = async () => {
-    if (currentLocation && destination) {
-      try {
-        db = await SQLite.openDatabaseAsync('goRides');
-        const existingRide = await checkExistingRideRequest();
-
-        if (existingRide && existingRide.length > 0) {
-          // Update existing request
-          await db.runAsync(
-            'UPDATE rides SET current_location = ?, ride_status = "pending" WHERE id = ?',
-            [currentLocation, existingRide[0].id]
-          );
-          Alert.alert("Ride Request Updated", "Your ride request has been updated.");
-        } else {
-          // Create new ride request
-          await db.runAsync(
-            'INSERT INTO rides (username, current_location, destination, ride_status) VALUES (?, ?, ?, "pending")',
-            [username, currentLocation, destination]
-          );
-          Alert.alert("Ride Request Sent", "Your ride request is now pending approval!");
-        }
-
-        fetchSavedRide(); // Fetch updated ride request
-      } catch (error) {
-        console.log("Error inserting or updating the ride request:", error);
-      }
-    } else {
-      Alert.alert("Invalid input", "Please provide both current location and destination.");
-    }
-  };
-
-  // Check if there's an existing ride request for the user at the destination
-  const checkExistingRideRequest = async () => {
+// Insert or update the ride request
+const insertOrUpdateRideRequest = async () => {
+  if (currentLocation && destination) {
     try {
       db = await SQLite.openDatabaseAsync('goRides');
-      const result = await db.getAllAsync(
-        'SELECT * FROM rides WHERE username = ? AND destination = ? AND ride_status = "pending"',
-        [username, destination]
-      );
-      return result;
+      
+      // Check if an existing pending or accepted ride request exists
+      const existingRide = await checkExistingRideRequest();
+  
+      if (existingRide && existingRide.length > 0) {
+        // Update the existing ride request with the new location and destination
+        await db.runAsync(
+          'UPDATE rides SET current_location = ?, destination = ? WHERE id = ?',
+          [currentLocation, destination, existingRide[0].id]
+        );
+        Alert.alert("Ride Updated", "Your existing ride request has been updated!");
+      } else {
+        // Create a new ride request if no existing request found
+        await db.runAsync(
+          'INSERT INTO rides (username, current_location, destination, ride_status) VALUES (?, ?, ?, "pending")',
+          [username, currentLocation, destination]
+        );
+        Alert.alert("Ride Request Sent", "Your new ride request has been created!");
+      }
+  
+      // Fetch the updated ride after inserting or updating the request
+      fetchSavedRide();
     } catch (error) {
-      console.log("Error checking for existing ride request:", error);
-      return null;
+      console.log("Error inserting or updating the ride request:", error);
     }
-  };
+  } else {
+    Alert.alert("Invalid input", "Please provide both current location and destination.");
+  }
+};
+
+// Check if there's an existing ride request for the user that is pending or accepted
+const checkExistingRideRequest = async () => {
+  try {
+    db = await SQLite.openDatabaseAsync('goRides');
+    const result = await db.getAllAsync(
+      'SELECT * FROM rides WHERE username = ? AND ride_status IN ("pending", "accepted")',
+      [username]
+    );
+    return result; // Returns the array of rides, which should be empty or contain one ride.
+  } catch (error) {
+    console.log("Error checking for existing ride request:", error);
+    return null;
+  }
+};
+
 
   // Accept the ride and store the rider name
   const acceptRide = async (rideId) => {
@@ -143,6 +148,22 @@ export default function HomeScreenComponent({ navigation }) {
       console.log("Error marking the ride as completed:", error);
     }
   };
+  const cancelRide = async () => {
+    try {
+      db = await SQLite.openDatabaseAsync('goRides');
+      // Update the ride status to 'cancelled'
+      await db.runAsync(
+        'UPDATE rides SET ride_status = "cancelled" WHERE id = ?',
+        [savedRide.id]
+      );
+      Alert.alert("Ride Cancelled", "Your ride request has been cancelled.");
+      
+      // Refresh the ride details immediately after cancellation
+      fetchSavedRide(); // Fetch updated ride request status
+    } catch (error) {
+      console.log("Error cancelling the ride:", error);
+    }
+  };
   
 
   useEffect(() => {
@@ -163,7 +184,7 @@ export default function HomeScreenComponent({ navigation }) {
     <View style={{ flex: 1 }}>
       <StatusBar barStyle="light-content" backgroundColor="#f1f1f1" />
       <ScrollView>
-        <View style={styles.homeScreenContainer}>
+        <View style={styles.homeScreenContainer}> 
           <View style={styles.header}>
             <View style={styles.inlineContainer}>
               <Image style={styles.profile} />
@@ -174,7 +195,7 @@ export default function HomeScreenComponent({ navigation }) {
             </View>
             <Feather name="map-pin" size={24} color="#fff" onPress={() => navigation.navigate("Map")} />
           </View>
-
+  
           <View style={[styles.locatonSearchContainer, styles.boxShadows]}>
             <View style={styles.inputContainer}>
               <Text>Current Location</Text>
@@ -188,7 +209,7 @@ export default function HomeScreenComponent({ navigation }) {
             </View>
             <View style={styles.inputContainer}>
               <Text>Destination</Text>
-              <View style={[styles.input,styles.inlineContainer]}>
+              <View style={[styles.input, styles.inlineContainer]}>
                 <TextInput
                   style={{ width: "90%" }}
                   value={destination}
@@ -200,23 +221,35 @@ export default function HomeScreenComponent({ navigation }) {
               </View>
             </View>
           </View>
+  
+          
           {savedRide && savedRide.ride_status !== 'completed' && (
-            <View style={[styles.statusContainer, styles.boxShadows]}>
-              <Text style={[styles.bold, { marginTop: 10 }]}>Your Ride Details</Text>
-              <Text>Current Location: {savedRide.current_location}</Text>
-              <Text>Destination: {savedRide.destination}</Text>
-              <Text>Ride Status: {savedRide.ride_status.charAt(0).toUpperCase() + savedRide.ride_status.slice(1)}</Text>
-              <Text>{savedRide.rider_name ? `Rider: ${savedRide.rider_name}` : "Waiting for rider to accept"}</Text>
-              
-              {savedRide.ride_status === 'accepted' && (
-                <TouchableOpacity onPress={markRideAsComplete}>
-                  <Text style={{ color: "green", fontWeight: "bold" }}>Complete Ride</Text>
-                </TouchableOpacity>
-              )}
-            </View>
+        <View style={[styles.locatonSearchContainer, styles.boxShadows]}>
+          <Text style={[styles.bold, { marginTop: 10 }]}>Your Ride Details</Text>
+          <Text>Current Location: {savedRide.current_location}</Text>
+          <Text>Destination: {savedRide.destination}</Text>
+          <Text>Ride Status: {savedRide.ride_status.charAt(0).toUpperCase() + savedRide.ride_status.slice(1)}</Text>
+          <Text style={{ lineHeight: 50, textAlign: 'center' }}>
+            {savedRide.rider_name ? `Rider: ${savedRide.rider_name}` : "Waiting for rider to accept..."}
+          </Text>
+
+          {savedRide.ride_status === 'accepted' && (
+            <TouchableOpacity onPress={markRideAsComplete}>
+              <Text style={{ color: "green", fontWeight: "bold" }}>Complete Ride</Text>
+            </TouchableOpacity>
           )}
+
+          {savedRide.ride_status === 'pending' && (
+            <TouchableOpacity onPress={cancelRide}>
+              <Text style={{ color: "red", fontWeight: "bold" }}>Cancel Ride</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
         </View>
       </ScrollView>
     </View>
   );
+  
 }
