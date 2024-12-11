@@ -10,6 +10,7 @@ export default function UserProfileScreen({ navigation, setIsLoggedIn }) {
   const [newUsername, setNewUsername] = useState('');
   const [userID, setUserID] = useState(null);
   const [isEditable, setIsEditable] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false); // New state to track logout process
 
   // Fetch user ID and username from SQLite
   const fetchUserDetails = async () => {
@@ -53,19 +54,35 @@ export default function UserProfileScreen({ navigation, setIsLoggedIn }) {
     fetchUserDetails();
   }, []);
 
-  // Logout function
-  const handleLogout = async () => {
-    try {
-      await AsyncStorage.removeItem('userID');
-      setIsLoggedIn(false); // Set logged-in state to false
-      Alert.alert("Logged Out", "You have been logged out successfully.");
+  // Handle logout with delay to avoid the "update during render" issue
+  useEffect(() => {
+    if (isLoggingOut) {
+      const performLogout = async () => {
+        try {
+          // Remove user data from AsyncStorage
+          await AsyncStorage.removeItem('userID');
+          await AsyncStorage.removeItem('role');
+          await AsyncStorage.removeItem('username');
+          await AsyncStorage.removeItem('email');
+          
+          // Update login state to false and navigate to Login screen
+          setIsLoggedIn(false); // Trigger logged out state
+          navigation.navigate("Login"); // Navigate to login screen
+        } catch (error) {
+          console.log("Error logging out:", error);
+          Alert.alert("Error", "There was an issue logging out.");
+        } finally {
+          setIsLoggingOut(false); // Reset logout state
+        }
+      };
 
-      // Navigate back to Login screen
-      navigation.navigate('Login');
-    } catch (error) {
-      console.log("Error logging out:", error);
-      Alert.alert("Error", "There was an issue logging out.");
+      performLogout();
     }
+  }, [isLoggingOut]); // Depend on `isLoggingOut` state
+
+  // Logout function
+  const handleLogout = () => {
+    setIsLoggingOut(true); // Set the state to start the logout process
   };
 
   return (
@@ -111,7 +128,7 @@ export default function UserProfileScreen({ navigation, setIsLoggedIn }) {
 
         {/* Logout Button */}
         <TouchableOpacity
-          style={[styles.loginButtons, {backgroundColor:'#B8001F',marginTop: 20 }]}
+          style={[styles.loginButtons, { backgroundColor: '#B8001F', marginTop: 20 }]}
           onPress={handleLogout} // Logout the user
         >
           <Text style={[styles.loginButtonText, styles.bold, { color: "#fff" }]}>Logout</Text>

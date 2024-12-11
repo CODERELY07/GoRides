@@ -1,30 +1,28 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from "react-native";
 import { AntDesign, Entypo } from "@expo/vector-icons";
 import * as SQLite from 'expo-sqlite';  // SQLite import for fetching data
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native'; 
 
-const RideHistoryScreenRider = ({ navigation }) => {
+const RideHistoryScreen = ({ navigation }) => {
   const [rides, setRides] = useState([]); // Initialize the rides state to store the completed rides
   const [username, setUsername] = useState(''); // Username for fetching user-specific rides
   let db;
 
-  // Fetch the username (if needed for filtering by user)
+  // Fetch the username from AsyncStorage
   const getUsername = async () => {
     try {
       const value = await AsyncStorage.getItem("username");
       if (value !== null) {
         setUsername(value);  // Set the username for filtering rides
-        console.log("Username fetched: ", value);  // Debug log
-      } else {
-        console.log("Username not found in AsyncStorage");
       }
     } catch (err) {
       console.log("Error fetching username:", err);
     }
   };
 
-  // Fetch completed rides for this rider
+  // Fetch completed rides for this user
   const fetchRideHistory = async () => {
     if (!username) {
       console.log("Username is not set, skipping fetch");
@@ -33,19 +31,18 @@ const RideHistoryScreenRider = ({ navigation }) => {
 
     try {
       db = await SQLite.openDatabaseAsync('goRides');
-      console.log("Fetching rides for username:", username);  // Debug log
       const result = await db.getAllAsync(
-        'SELECT * FROM rides WHERE ride_status = "completed" AND username = ?',
+        'SELECT * FROM rides WHERE ride_status = "completed" AND rider_name = ?',
         [username]
       );
-      console.log("Fetched rides result:", result);  // Debug log
-      if (result && result.length > 0) {
+      if (result.length > 0) {
         setRides(result); // Set the rides to state once fetched from the database
       } else {
-        console.log("No completed rides found for the user.");
+        setRides([]); // If no completed rides, set to empty array
       }
     } catch (error) {
       console.log("Error fetching ride history:", error);
+      Alert.alert("Error", "Failed to fetch ride history. Please try again.");
     }
   };
 
@@ -54,12 +51,30 @@ const RideHistoryScreenRider = ({ navigation }) => {
     getUsername(); // Get username on mount
   }, []);
 
-  // Fetch ride history only after username is set
-  useEffect(() => {
-    if (username) {
-      fetchRideHistory(); // Fetch ride history if username is available
+  // Refetch ride history when the screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      if (username) {
+        fetchRideHistory(); // Fetch ride history when the screen is focused
+      }
+    }, [username]) // Only refetch if the username is set
+  );
+
+  // Delete a completed ride
+  const deleteRide = async (rideId) => {
+    try {
+      db = await SQLite.openDatabaseAsync('goRides');
+      await db.runAsync('DELETE FROM rides WHERE id = ?', [rideId]);
+
+      // Remove the deleted ride from the state
+      setRides((prevRides) => prevRides.filter((ride) => ride.id !== rideId));
+
+      Alert.alert("Success", "The ride has been deleted.");
+    } catch (error) {
+      console.log("Error deleting ride:", error);
+      Alert.alert("Error", "Failed to delete the ride. Please try again.");
     }
-  }, [username]);
+  };
 
   return (
     <ScrollView style={styles.homeScreenContainer}>
@@ -88,9 +103,9 @@ const RideHistoryScreenRider = ({ navigation }) => {
               <Text style={styles.smallText}>Completed Ride</Text>
             </View>
             <View style={{ flexDirection: "row", gap: 40 }}>
-              <Text>₱{ride.fare || 'TBD'}</Text>
-              <TouchableOpacity>
-                <Entypo name="cross" size={24} color="#4A90E2" />
+              <Text>{ride.rider_name || 'Rider'}</Text>  
+              <TouchableOpacity onPress={() => deleteRide(ride.id)}>
+               <AntDesign name="close" size={24} color="red" />
               </TouchableOpacity>
             </View>
           </View>
@@ -99,6 +114,8 @@ const RideHistoryScreenRider = ({ navigation }) => {
     </ScrollView>
   );
 };
+
+
 
 const styles = StyleSheet.create({
   homeScreenContainer: {
@@ -112,10 +129,6 @@ const styles = StyleSheet.create({
   },
   big: {
     fontSize: 20,
-  },
-  smallText: {
-    fontSize: 12,
-    color: "rgba(0,0,0,0.5)",
   },
   inlineContainer: {
     flexDirection: "row",
@@ -131,6 +144,10 @@ const styles = StyleSheet.create({
     borderColor: "rgba(0,0,0,0.1)",
     paddingBottom: 5,
   },
+  smallText: {
+    fontSize: 12,
+    color: "rgba(0,0,0,0.5)",
+  },
 });
 
-export default RideHistoryScreenRider;
+export default RideHistoryScreen;
