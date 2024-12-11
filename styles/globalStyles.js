@@ -154,5 +154,17 @@ container: {
     textCenter:{
         textAlign:'center',
         marginTop:10,
+    },
+    rideItemContainer:{
+        paddingTop:20,
+    },
+    riderButton:{
+        padding:8,
+        borderRadius:8,
+        marginRight:10,
+        marginTop:10,
+        justifyContent:"center",
+        alignItems:"center",
+        marginBottom:10,
     }
 });

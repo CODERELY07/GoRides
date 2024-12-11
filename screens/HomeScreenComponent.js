@@ -21,7 +21,7 @@ export default function HomeScreenComponent({ navigation }) {
   const [currentLocation, setCurrentLocation] = useState("");
   const [destination, setDestination] = useState("");
   const [savedRide, setSavedRide] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // State for login status
+  const [isLoggedIn, setIsLoggedIn] = useState(false); 
   let db;
 
   // Open database and initialize it
