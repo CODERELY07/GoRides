@@ -14,7 +14,7 @@ import Feather from "@expo/vector-icons/Feather";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import * as SQLite from "expo-sqlite";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect } from "@react-navigation/native"; // Import useFocusEffect
+import { useFocusEffect } from "@react-navigation/native"; // \\
 
 export default function HomeScreenComponent({ navigation }) {
   const [username, setUsername] = useState("");
@@ -28,6 +28,7 @@ export default function HomeScreenComponent({ navigation }) {
   const initDb = async () => {
     db = await SQLite.openDatabaseAsync("goRides");
     try {
+      // Create the rides table if it doesn't exist
       await db.execAsync(`
         CREATE TABLE IF NOT EXISTS rides (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -39,10 +40,24 @@ export default function HomeScreenComponent({ navigation }) {
           timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
         );
       `);
+  
+      // Create the rider_history table for completed rides
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS rider_history (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          username TEXT NOT NULL, 
+          current_location TEXT NOT NULL,
+          destination TEXT NOT NULL,
+          ride_status TEXT DEFAULT 'completed',
+          rider_name TEXT,
+          completed_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
     } catch (e) {
       console.log("Error initializing DB:", e);
     }
   };
+  
 
   // Function to check if the user is logged in
   const checkIsLoggedIn = async () => {
@@ -167,26 +182,56 @@ export default function HomeScreenComponent({ navigation }) {
       console.log("Error accepting the ride:", error);
     }
   };
+  const logTablesData = async () => {
+    try {
+      db = await SQLite.openDatabaseAsync("goRides");
+  
+      // Query the rides table for all records
+      const ridesResult = await db.getAllAsync('SELECT * FROM rides');
+      console.log("Rides Table:", ridesResult);
+  
+      // Query the rider_history table for all records
+      const riderHistoryResult = await db.getAllAsync('SELECT * FROM rider_history');
+      console.log("Rider History Table:", riderHistoryResult);
+    } catch (error) {
+      console.log("Error fetching table data:", error);
+    }
+  };
+  
 
   const markRideAsComplete = async () => {
     try {
       db = await SQLite.openDatabaseAsync("goRides");
-      // Update the ride status in the database
+  
+      // Insert the completed ride into the rider_history table
+      await db.runAsync(
+        'INSERT INTO rider_history (username, current_location, destination, ride_status, rider_name, completed_timestamp) SELECT username, current_location, destination, ride_status, rider_name, CURRENT_TIMESTAMP FROM rides WHERE id = ?',
+        [savedRide.id]
+      );
+  
+      // Update the ride status in the rides table to 'completed'
       await db.runAsync(
         'UPDATE rides SET ride_status = "completed" WHERE id = ?',
         [savedRide.id]
       );
-      Alert.alert("Ride Completed", "The ride has been marked as completed.");
   
-      // Refresh the ride details immediately
+      Alert.alert("Ride Completed", "The ride has been marked as completed.");
+      
+      // Fetch the updated ride details immediately
       fetchSavedRide(); // Fetch updated ride request status
   
       // Trigger the RideHistoryScreen to refresh the history after completion
       navigation.navigate("RideHistory");
+  
+      // Log the values of both tables
+      logTablesData();
     } catch (error) {
       console.log("Error marking the ride as completed:", error);
     }
   };
+  
+  
+  
   
 
   const cancelRide = async () => {

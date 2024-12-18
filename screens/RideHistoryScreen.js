@@ -36,7 +36,7 @@ const RideHistoryScreen = ({ navigation }) => {
         [username]
       );
       if (result.length > 0) {
-        setRides(result); // Set the rides to state once fetched from the database
+        setRides(result); 
       } else {
         setRides([]); // If no completed rides, set to empty array
       }

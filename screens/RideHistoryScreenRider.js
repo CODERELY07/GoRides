@@ -1,28 +1,50 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from "react-native";
-import { AntDesign, Entypo } from "@expo/vector-icons";
+import { AntDesign } from "@expo/vector-icons";
 import * as SQLite from 'expo-sqlite';  // SQLite import for fetching data
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native'; 
 
-const RideHistoryScreen = ({ navigation }) => {
+const RideHistoryScreenRider = ({ navigation }) => {
   const [rides, setRides] = useState([]); // Initialize the rides state to store the completed rides
   const [username, setUsername] = useState(''); // Username for fetching user-specific rides
   let db;
-
+  const initDb = async () => {
+    db = await SQLite.openDatabaseAsync("goRides");
+    try {
+     
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS rider_history (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          username TEXT NOT NULL, 
+          current_location TEXT NOT NULL,
+          destination TEXT NOT NULL,
+          ride_status TEXT DEFAULT 'completed',
+          rider_name TEXT,
+          completed_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+    } catch (e) {
+      console.log("Error initializing DB:", e);
+    }
+  };
+  useEffect(()=>{
+    initDb();
+  }, []);
   // Fetch the username from AsyncStorage
   const getUsername = async () => {
     try {
       const value = await AsyncStorage.getItem("username");
       if (value !== null) {
         setUsername(value);  // Set the username for filtering rides
+        console.log(value)
       }
     } catch (err) {
       console.log("Error fetching username:", err);
     }
   };
-
-  // Fetch completed rides for this user
+console.log(username)
+  // Fetch completed rides for this user from the rider_history table
   const fetchRideHistory = async () => {
     if (!username) {
       console.log("Username is not set, skipping fetch");
@@ -31,15 +53,25 @@ const RideHistoryScreen = ({ navigation }) => {
 
     try {
       db = await SQLite.openDatabaseAsync('goRides');
+      console.log("Database opened successfully");
+
+      // Fetch completed rides from rider_history table using getAllAsync
       const result = await db.getAllAsync(
-        'SELECT * FROM rides WHERE ride_status = "completed" AND rider_name = ?',
+        'SELECT * FROM rider_history WHERE ride_status = "accepted" AND rider_name = ?',
         [username]
       );
+      console.log("Query result:", result); // Log the query result to see the returned rows
+
       if (result.length > 0) {
-        setRides(result); // Set the rides to state once fetched from the database
+        setRides(result); // Set the rides to state once fetched from the rider_history table
       } else {
         setRides([]); // If no completed rides, set to empty array
       }
+
+      // Log all records in rider_history table for debugging purposes
+      const allRows = await db.getAllAsync('SELECT * FROM rider_history');
+      console.log("Entire rider_history table:", allRows);
+
     } catch (error) {
       console.log("Error fetching ride history:", error);
       Alert.alert("Error", "Failed to fetch ride history. Please try again.");
@@ -60,11 +92,11 @@ const RideHistoryScreen = ({ navigation }) => {
     }, [username]) // Only refetch if the username is set
   );
 
-  // Delete a completed ride
+  // Delete a completed ride from the rider_history table
   const deleteRide = async (rideId) => {
     try {
       db = await SQLite.openDatabaseAsync('goRides');
-      await db.runAsync('DELETE FROM rides WHERE id = ?', [rideId]);
+      await db.runAsync('DELETE FROM rider_history WHERE id = ?', [rideId]);
 
       // Remove the deleted ride from the state
       setRides((prevRides) => prevRides.filter((ride) => ride.id !== rideId));
@@ -103,9 +135,9 @@ const RideHistoryScreen = ({ navigation }) => {
               <Text style={styles.smallText}>Completed Ride</Text>
             </View>
             <View style={{ flexDirection: "row", gap: 40 }}>
-              <Text>{ride.rider_name || 'Rider'}</Text>  
+              <Text>{ride.username || 'Rider'}</Text>  
               <TouchableOpacity onPress={() => deleteRide(ride.id)}>
-               <AntDesign name="close" size={24} color="red" />
+                <AntDesign name="close" size={24} color="red" />
               </TouchableOpacity>
             </View>
           </View>
@@ -114,8 +146,6 @@ const RideHistoryScreen = ({ navigation }) => {
     </ScrollView>
   );
 };
-
-
 
 const styles = StyleSheet.create({
   homeScreenContainer: {
@@ -150,4 +180,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RideHistoryScreen;
+export default RideHistoryScreenRider;

@@ -15,15 +15,15 @@ export default function RiderHomeScreen({ navigation }) {
     try {
       await db.execAsync(`
         PRAGMA journal_mode = WAL;
-    CREATE TABLE IF NOT EXISTS rides (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  username TEXT NOT NULL,  -- User who requested the ride
-  current_location TEXT NOT NULL,
-  destination TEXT NOT NULL,
-  ride_status TEXT DEFAULT 'pending',
-  rider_name TEXT,  -- New field to store the name of the rider who accepts the ride
-  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+            CREATE TABLE IF NOT EXISTS rides (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          username TEXT NOT NULL,  -- User who requested the ride
+          current_location TEXT NOT NULL,
+          destination TEXT NOT NULL,
+          ride_status TEXT DEFAULT 'pending',
+          rider_name TEXT,  -- New field to store the name of the rider who accepts the ride
+          timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
 
       `);
     } catch (e) {

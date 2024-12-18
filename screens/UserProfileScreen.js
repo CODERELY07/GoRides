@@ -39,7 +39,7 @@ export default function UserProfileScreen({ navigation, setIsLoggedIn }) {
     try {
       const db = await SQLite.openDatabaseAsync('goRides');
       await db.runAsync("UPDATE users SET username = ? WHERE userID = ?", [newUsername, userID]);
-      setUsername(newUsername); // Update the username in state immediately
+      setUsername(newUsername);
       setNewUsername(''); // Clear the input field
       setIsEditable(false); // Turn off edit mode
       Alert.alert("Success", "Your username has been updated. Please Logout to fully update your username.");

@@ -17,8 +17,6 @@ const initDB = async () => {
   try {
     await db.execAsync(`
       PRAGMA journal_mode = WAL;
-
-
       -- Create the 'users' table again with the necessary columns
       CREATE TABLE IF NOT EXISTS users(
         userID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,

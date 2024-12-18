@@ -12,7 +12,7 @@ import RideHistoryScreen from "./screens/RideHistoryScreen";
 import UserProfileScreen from "./screens/UserProfileScreen";
 import RideHistoryScreenRider from "./screens/RideHistoryScreenRider";
 import RiderHomeScreen from "./screens/RiderHomeScreen";
-
+import PickerScreen from "./screens/PickerScreen";
 // Icons
 import AntDesign from "@expo/vector-icons/AntDesign";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
@@ -149,6 +149,11 @@ export default function App() {
         <Stack.Screen
           name="Login"
           component={LoginScreenComponent}
+          options={{ headerShown: false }}
+        />
+         <Stack.Screen
+          name="Picker"
+          component={PickerScreen}
           options={{ headerShown: false }}
         />
         {/* SignUp screen */}
