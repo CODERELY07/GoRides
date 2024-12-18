@@ -33,18 +33,6 @@ const initDB = async () => {
 };
 initDB();
 
-// const showUsers = async () => {
-//   const db = await SQLite.openDatabaseAsync('goRides');
-//   try {
-//     const allRows = await db.getAllAsync('SELECT * FROM users');
-//     for (const row of allRows) {
-//       console.log(row.userID, row.username, row.email, row.password);
-//     }
-//   } catch (e) {
-//     console.log('Error: ', e);
-//   }
-// };
-
 const validateEmail = (email) => {
   const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
   return emailRegex.test(email);

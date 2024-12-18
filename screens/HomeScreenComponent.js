@@ -24,11 +24,10 @@ export default function HomeScreenComponent({ navigation }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false); 
   let db;
 
-  // Open database and initialize it
   const initDb = async () => {
     db = await SQLite.openDatabaseAsync("goRides");
     try {
-      // Create the rides table if it doesn't exist
+    
       await db.execAsync(`
         CREATE TABLE IF NOT EXISTS rides (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,7 +40,6 @@ export default function HomeScreenComponent({ navigation }) {
         );
       `);
   
-      // Create the rider_history table for completed rides
       await db.execAsync(`
         CREATE TABLE IF NOT EXISTS rider_history (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -59,7 +57,7 @@ export default function HomeScreenComponent({ navigation }) {
   };
   
 
-  // Function to check if the user is logged in
+
   const checkIsLoggedIn = async () => {
     try {
       const storedUserID = await AsyncStorage.getItem("userID");
@@ -78,7 +76,6 @@ export default function HomeScreenComponent({ navigation }) {
     checkIsLoggedIn(); // Check if user is logged in when HomeScreenComponent mounts
   }, []);
 
-  // Fetch the username from AsyncStorage
   const getUsername = async () => {
     try {
       const value = await AsyncStorage.getItem("username");
@@ -90,7 +87,7 @@ export default function HomeScreenComponent({ navigation }) {
     }
   };
 
-  // Fetch the current ride details (current_location and destination), but only for rides that are pending or accepted
+ 
   const fetchSavedRide = async () => {
     try {
       db = await SQLite.openDatabaseAsync("goRides");
@@ -109,7 +106,7 @@ export default function HomeScreenComponent({ navigation }) {
     }
   };
 
-  // Insert or update the ride request
+
   const insertOrUpdateRideRequest = async () => {
     if (currentLocation && destination) {
       try {
@@ -153,7 +150,7 @@ export default function HomeScreenComponent({ navigation }) {
     }
   };
 
-  // Check if there's an existing ride request for the user that is pending or accepted
+ 
   const checkExistingRideRequest = async () => {
     try {
       db = await SQLite.openDatabaseAsync("goRides");
@@ -161,14 +158,14 @@ export default function HomeScreenComponent({ navigation }) {
         'SELECT * FROM rides WHERE username = ? AND ride_status IN ("pending", "accepted")',
         [username]
       );
-      return result; // Returns the array of rides, which should be empty or contain one ride.
+      return result; 
     } catch (error) {
       console.log("Error checking for existing ride request:", error);
       return null;
     }
   };
 
-  // Accept the ride and store the rider name
+
   const acceptRide = async (rideId) => {
     try {
       db = await SQLite.openDatabaseAsync("goRides");
@@ -177,7 +174,7 @@ export default function HomeScreenComponent({ navigation }) {
         [username, rideId]
       );
       Alert.alert("Ride Accepted", "You have accepted the ride!");
-      fetchSavedRide(); // Refresh the ride details
+      fetchSavedRide(); 
     } catch (error) {
       console.log("Error accepting the ride:", error);
     }
@@ -185,12 +182,11 @@ export default function HomeScreenComponent({ navigation }) {
   const logTablesData = async () => {
     try {
       db = await SQLite.openDatabaseAsync("goRides");
-  
-      // Query the rides table for all records
+
       const ridesResult = await db.getAllAsync('SELECT * FROM rides');
       console.log("Rides Table:", ridesResult);
   
-      // Query the rider_history table for all records
+    
       const riderHistoryResult = await db.getAllAsync('SELECT * FROM rider_history');
       console.log("Rider History Table:", riderHistoryResult);
     } catch (error) {
@@ -203,13 +199,12 @@ export default function HomeScreenComponent({ navigation }) {
     try {
       db = await SQLite.openDatabaseAsync("goRides");
   
-      // Insert the completed ride into the rider_history table
+
       await db.runAsync(
         'INSERT INTO rider_history (username, current_location, destination, ride_status, rider_name, completed_timestamp) SELECT username, current_location, destination, ride_status, rider_name, CURRENT_TIMESTAMP FROM rides WHERE id = ?',
         [savedRide.id]
       );
-  
-      // Update the ride status in the rides table to 'completed'
+
       await db.runAsync(
         'UPDATE rides SET ride_status = "completed" WHERE id = ?',
         [savedRide.id]
@@ -217,13 +212,13 @@ export default function HomeScreenComponent({ navigation }) {
   
       Alert.alert("Ride Completed", "The ride has been marked as completed.");
       
-      // Fetch the updated ride details immediately
-      fetchSavedRide(); // Fetch updated ride request status
   
-      // Trigger the RideHistoryScreen to refresh the history after completion
+      fetchSavedRide(); 
+  
+
       navigation.navigate("RideHistory");
   
-      // Log the values of both tables
+    
       logTablesData();
     } catch (error) {
       console.log("Error marking the ride as completed:", error);
@@ -237,15 +232,15 @@ export default function HomeScreenComponent({ navigation }) {
   const cancelRide = async () => {
     try {
       db = await SQLite.openDatabaseAsync("goRides");
-      // Update the ride status to 'cancelled'
+ 
       await db.runAsync(
         'UPDATE rides SET ride_status = "cancelled" WHERE id = ?',
         [savedRide.id]
       );
       Alert.alert("Ride Cancelled", "Your ride request has been cancelled.");
 
-      // Refresh the ride details immediately after cancellation
-      fetchSavedRide(); // Fetch updated ride request status
+    
+      fetchSavedRide(); 
     } catch (error) {
       console.log("Error cancelling the ride:", error);
     }
@@ -253,16 +248,16 @@ export default function HomeScreenComponent({ navigation }) {
 
   useEffect(() => {
     initDb();
-    getUsername(); // Get the username when the component is mounted
-  }, []); // Only run once when the component is mounted
+    getUsername(); 
+  }, []);
 
-  // Refetch saved ride whenever the screen comes into focus
+  
   useFocusEffect(
     React.useCallback(() => {
       if (username) {
-        fetchSavedRide(); // Fetch the saved ride again whenever the screen is focused
+        fetchSavedRide(); 
       }
-    }, [username]) // Only refetch if the username is set
+    }, [username]) 
   );
 
   return (

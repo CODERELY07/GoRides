@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
-import * as SQLite from 'expo-sqlite';  // SQLite import for fetching data
+import * as SQLite from 'expo-sqlite';  
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native'; 
 
 const RideHistoryScreenRider = ({ navigation }) => {
-  const [rides, setRides] = useState([]); // Initialize the rides state to store the completed rides
-  const [username, setUsername] = useState(''); // Username for fetching user-specific rides
+  const [rides, setRides] = useState([]); 
+  const [username, setUsername] = useState(''); 
   let db;
   const initDb = async () => {
     db = await SQLite.openDatabaseAsync("goRides");
@@ -31,12 +31,12 @@ const RideHistoryScreenRider = ({ navigation }) => {
   useEffect(()=>{
     initDb();
   }, []);
-  // Fetch the username from AsyncStorage
+ 
   const getUsername = async () => {
     try {
       const value = await AsyncStorage.getItem("username");
       if (value !== null) {
-        setUsername(value);  // Set the username for filtering rides
+        setUsername(value);  
         console.log(value)
       }
     } catch (err) {
@@ -44,7 +44,7 @@ const RideHistoryScreenRider = ({ navigation }) => {
     }
   };
 console.log(username)
-  // Fetch completed rides for this user from the rider_history table
+  
   const fetchRideHistory = async () => {
     if (!username) {
       console.log("Username is not set, skipping fetch");
@@ -55,20 +55,19 @@ console.log(username)
       db = await SQLite.openDatabaseAsync('goRides');
       console.log("Database opened successfully");
 
-      // Fetch completed rides from rider_history table using getAllAsync
       const result = await db.getAllAsync(
         'SELECT * FROM rider_history WHERE ride_status = "accepted" AND rider_name = ?',
         [username]
       );
-      console.log("Query result:", result); // Log the query result to see the returned rows
+      console.log("Query result:", result); 
 
       if (result.length > 0) {
-        setRides(result); // Set the rides to state once fetched from the rider_history table
+        setRides(result);
       } else {
-        setRides([]); // If no completed rides, set to empty array
+        setRides([]); 
       }
 
-      // Log all records in rider_history table for debugging purposes
+   
       const allRows = await db.getAllAsync('SELECT * FROM rider_history');
       console.log("Entire rider_history table:", allRows);
 
@@ -78,27 +77,27 @@ console.log(username)
     }
   };
 
-  // Fetch the rides when the component mounts or the username changes
+  
   useEffect(() => {
-    getUsername(); // Get username on mount
+    getUsername(); 
   }, []);
 
-  // Refetch ride history when the screen comes into focus
+
   useFocusEffect(
     React.useCallback(() => {
       if (username) {
-        fetchRideHistory(); // Fetch ride history when the screen is focused
+        fetchRideHistory();
       }
-    }, [username]) // Only refetch if the username is set
+    }, [username]) 
   );
 
-  // Delete a completed ride from the rider_history table
+
   const deleteRide = async (rideId) => {
     try {
       db = await SQLite.openDatabaseAsync('goRides');
       await db.runAsync('DELETE FROM rider_history WHERE id = ?', [rideId]);
 
-      // Remove the deleted ride from the state
+    
       setRides((prevRides) => prevRides.filter((ride) => ride.id !== rideId));
 
       Alert.alert("Success", "The ride has been deleted.");

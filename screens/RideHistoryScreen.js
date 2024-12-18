@@ -1,28 +1,28 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from "react-native";
 import { AntDesign, Entypo } from "@expo/vector-icons";
-import * as SQLite from 'expo-sqlite';  // SQLite import for fetching data
+import * as SQLite from 'expo-sqlite';  
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native'; 
 
 const RideHistoryScreen = ({ navigation }) => {
-  const [rides, setRides] = useState([]); // Initialize the rides state to store the completed rides
-  const [username, setUsername] = useState(''); // Username for fetching user-specific rides
+  const [rides, setRides] = useState([]); 
+  const [username, setUsername] = useState(''); 
   let db;
 
-  // Fetch the username from AsyncStorage
+
   const getUsername = async () => {
     try {
       const value = await AsyncStorage.getItem("username");
       if (value !== null) {
-        setUsername(value);  // Set the username for filtering rides
+        setUsername(value);  
       }
     } catch (err) {
       console.log("Error fetching username:", err);
     }
   };
 
-  // Fetch completed rides for this user
+
   const fetchRideHistory = async () => {
     if (!username) {
       console.log("Username is not set, skipping fetch");
@@ -38,7 +38,7 @@ const RideHistoryScreen = ({ navigation }) => {
       if (result.length > 0) {
         setRides(result); 
       } else {
-        setRides([]); // If no completed rides, set to empty array
+        setRides([]); 
       }
     } catch (error) {
       console.log("Error fetching ride history:", error);
@@ -46,27 +46,27 @@ const RideHistoryScreen = ({ navigation }) => {
     }
   };
 
-  // Fetch the rides when the component mounts or the username changes
+
   useEffect(() => {
-    getUsername(); // Get username on mount
+    getUsername(); 
   }, []);
 
-  // Refetch ride history when the screen comes into focus
+ 
   useFocusEffect(
     React.useCallback(() => {
       if (username) {
-        fetchRideHistory(); // Fetch ride history when the screen is focused
+        fetchRideHistory(); 
       }
-    }, [username]) // Only refetch if the username is set
+    }, [username]) 
   );
 
-  // Delete a completed ride
+ 
   const deleteRide = async (rideId) => {
     try {
       db = await SQLite.openDatabaseAsync('goRides');
       await db.runAsync('DELETE FROM rides WHERE id = ?', [rideId]);
 
-      // Remove the deleted ride from the state
+     
       setRides((prevRides) => prevRides.filter((ride) => ride.id !== rideId));
 
       Alert.alert("Success", "The ride has been deleted.");

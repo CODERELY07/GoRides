@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
-// Screens
+
 import SignUpScreenComponent from "./screens/SignUpScreenComponent";
 import HomeScreenComponent from "./screens/HomeScreenComponent";
 import LoginScreenComponent from "./screens/LoginScreenComponent";
@@ -13,11 +13,10 @@ import UserProfileScreen from "./screens/UserProfileScreen";
 import RideHistoryScreenRider from "./screens/RideHistoryScreenRider";
 import RiderHomeScreen from "./screens/RiderHomeScreen";
 import PickerScreen from "./screens/PickerScreen";
-// Icons
+
 import AntDesign from "@expo/vector-icons/AntDesign";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 
-// Create Navigators
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -96,30 +95,30 @@ function TabScreenRidersComponent({ setIsLoggedIn }) {
 }
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Track login status
-  const [role, setRole] = useState(null); // Track user role (user or rider)
-  const [isLoading, setIsLoading] = useState(true); // Track loading state while checking login status
+  const [isLoggedIn, setIsLoggedIn] = useState(false); 
+  const [role, setRole] = useState(null);
+  const [isLoading, setIsLoading] = useState(true); 
 
   useEffect(() => {
-    // Function to check if user is logged in and set role
+   
     const checkLoginStatus = async () => {
-      const userID = await AsyncStorage.getItem("userID"); // Check if userID exists
+      const userID = await AsyncStorage.getItem("userID"); 
       if (userID) {
-        setIsLoggedIn(true); // If userID exists, user is logged in
-        const userRole = await AsyncStorage.getItem("role"); // Get user role
-        setRole(userRole); // Set role based on AsyncStorage value
+        setIsLoggedIn(true); 
+        const userRole = await AsyncStorage.getItem("role"); 
+        setRole(userRole); 
       } else {
-        setIsLoggedIn(false); // User is not logged in
+        setIsLoggedIn(false); 
       }
-      setIsLoading(false); // Set loading to false after the check is complete
+      setIsLoading(false); 
     };
 
     checkLoginStatus();
   }, []);
 
-  // While loading, display a blank screen or splash screen
+  
   if (isLoading) {
-    return null; // You can replace this with a loading spinner or splash screen
+    return null; 
   }
 
   return (
@@ -128,24 +127,24 @@ export default function App() {
         initialRouteName={
           isLoggedIn
             ? role === "rider"
-              ? "RiderTab" // If role is rider, show RiderTab
-              : "Tab" // If role is user, show Tab
-            : "Login" // If not logged in, show Login
+              ? "RiderTab" 
+              : "Tab" 
+            : "Login" 
         }
       >
-        {/* Tab for regular users */}
+       
         <Stack.Screen
           name="Tab"
           children={(props) => <TabScreenComponent {...props} setIsLoggedIn={setIsLoggedIn} />}
           options={{ headerShown: false }}
         />
-        {/* Tab for riders */}
+       
         <Stack.Screen
           name="RiderTab"
           children={(props) => <TabScreenRidersComponent {...props} setIsLoggedIn={setIsLoggedIn} />}
           options={{ headerShown: false }}
         />
-        {/* Login screen */}
+      
         <Stack.Screen
           name="Login"
           component={LoginScreenComponent}
@@ -156,7 +155,7 @@ export default function App() {
           component={PickerScreen}
           options={{ headerShown: false }}
         />
-        {/* SignUp screen */}
+       
         <Stack.Screen
           name="Signup"
           component={SignUpScreenComponent}

@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import RiderHomeScreen from "./RiderHomeScreen";
-import RideHistoryScreenRider from "../screens/RideHistoryScreenRider"; // Import the new rider's ride history screen
+import RideHistoryScreenRider from "../screens/RideHistoryScreenRider"; 
 import UserProfileScreen from "../screens/UserProfileScreen";
 
 const Tab = createBottomTabNavigator();
@@ -24,7 +24,7 @@ export default function TabScreenRidersComponent() {
       />
       <Tab.Screen
         name="RideHistory"
-        component={RideHistoryScreenRider} // Updated to Rider's History
+        component={RideHistoryScreenRider} 
         options={{
           headerShown: false,
           tabBarIcon: ({ color, size }) => (

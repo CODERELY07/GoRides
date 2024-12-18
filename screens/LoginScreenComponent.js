@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, StatusBar } from "react-native";
 import { styles } from "../styles/globalStyles";
-import * as SQLite from "expo-sqlite";  // Import SQLite
-import AsyncStorage from "@react-native-async-storage/async-storage";  // Import AsyncStorage
+import * as SQLite from "expo-sqlite";  
+import AsyncStorage from "@react-native-async-storage/async-storage";  
 
-// Open the SQLite database
+
 const login = async (email, password, navigation, setPasswordError) => {
   try {
-    // Open the SQLite database
+   
     const db = await SQLite.openDatabaseAsync('goRides'); 
 
-    // Query to find user by email and password
+
     const result = await db.getFirstAsync(
       "SELECT * FROM users WHERE email = ? AND password = ?",
       [email, password]
@@ -18,18 +18,17 @@ const login = async (email, password, navigation, setPasswordError) => {
 
     if (result) {
       console.log("Login successful!");
-      
-      // Store user details in AsyncStorage
+
       await AsyncStorage.setItem("email", result.email);
       await AsyncStorage.setItem("username", result.username);
       await AsyncStorage.setItem("role", result.role);
       await AsyncStorage.setItem("userID", result.userID.toString());
 
-      // Navigate to the correct tab based on the user's role
+    
       if (result.role === "user") {
-        navigation.reset({ index: 0, routes: [{ name: "Tab" }] }); // Reset navigation and go to User Tab
+        navigation.reset({ index: 0, routes: [{ name: "Tab" }] });
       } else {
-        navigation.reset({ index: 0, routes: [{ name: "RiderTab" }] }); // Reset navigation and go to Rider Tab
+        navigation.reset({ index: 0, routes: [{ name: "RiderTab" }] }); 
       }
     } else {
       console.log("Invalid email or password");
@@ -41,7 +40,7 @@ const login = async (email, password, navigation, setPasswordError) => {
 };
 
 const validateEmail = (email) => {
-  // Regular expression for validating email format
+
   const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
   return emailRegex.test(email);
 };
@@ -51,33 +50,33 @@ export default function LoginScreenComponent({ navigation }) {
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Track if user is logged in
+  const [isLoggedIn, setIsLoggedIn] = useState(false); 
 
-  // Function to check if the user is logged in
+
   const checkIsLoggedIn = async () => {
     try {
       const storedUserID = await AsyncStorage.getItem("userID");
       if (storedUserID) {
-        setIsLoggedIn(true); // User is logged in, so set logged-in state
+        setIsLoggedIn(true); 
       } else {
-        setIsLoggedIn(false); // User is not logged in, so set logged-out state
+        setIsLoggedIn(false);
       }
     } catch (error) {
       console.log("Error checking login state:", error);
-      setIsLoggedIn(false); // Default to logged out state in case of error
+      setIsLoggedIn(false); 
     }
   };
 
-  // Call checkIsLoggedIn on component mount
+ 
   useEffect(() => {
     checkIsLoggedIn();
   }, []);
 
-  // Handle Login function
+ 
   const handleLogin = async () => {
     let valid = true;
 
-    // Email Validation
+    
     if (!email || !validateEmail(email)) {
       setEmailError("Please enter a valid email");
       valid = false;
@@ -85,7 +84,7 @@ export default function LoginScreenComponent({ navigation }) {
       setEmailError("");
     }
 
-    // Password Validation
+   
     if (!password) {
       setPasswordError("Please enter a password");
       valid = false;
